@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 import httpx
 
 from dotenv import load_dotenv
@@ -6,6 +6,17 @@ from fastapi import FastAPI, HTTPException, Query
 
 load_dotenv(override=True)
 
+from app.schemas import PlaylistParseRequest, PlaylistParseResponse
+from app.services.ollama_service import (
+    parse_playlist_request,
+    get_ollama_config,
+    check_ollama_health,
+    OllamaConnectionError,
+    OllamaTimeoutError,
+    OllamaModelNotFoundError,
+    OllamaResponseValidationError,
+    OllamaServiceError,
+)
 from app.services.musicbrainz import search_tracks
 from app.services.lastfm import get_similar_tracks, rank_tracks
 from app.services.music_intelligence import (
@@ -17,18 +28,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sounddeck")
 
 app = FastAPI(
-    title="SoundDeck",
-    description="AI-powered music discovery and playlist intelligence",
-    version="0.6.0",
+    title="SoundDeck Studio",
+    description="Local-AI-powered music curation application for independent DJs and event organizers",
+    version="0.7.0",
 )
 
 
 @app.get("/")
 async def root():
     return {
-        "name": "SoundDeck",
+        "name": "SoundDeck Studio",
         "status": "running",
-        "version": "0.6.0",
+        "version": "0.7.0",
     }
 
 
@@ -162,3 +173,87 @@ async def generate_playlist(
             status_code=502,
             detail="Unable to retrieve related tracks",
         ) from exc
+
+
+@app.get("/api/ai/status")
+async def get_ai_status():
+    """Check connectivity and model availability for the local Ollama service."""
+    base_url, model = get_ollama_config()
+    try:
+        data = await check_ollama_health(base_url)
+        installed_models = [
+            m.get("name") for m in data.get("models", []) if isinstance(m, dict)
+        ]
+        return {
+            "status": "connected",
+            "base_url": base_url,
+            "configured_model": model,
+            "model_available": any(
+                m == model or m.startswith(f"{model}:") for m in installed_models
+            ),
+            "installed_models": installed_models,
+        }
+    except OllamaConnectionError as exc:
+        return {
+            "status": "disconnected",
+            "base_url": base_url,
+            "configured_model": model,
+            "error": str(exc),
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "base_url": base_url,
+            "configured_model": model,
+            "error": str(exc),
+        }
+
+
+@app.post("/api/ai/parse-playlist-request", response_model=PlaylistParseResponse)
+async def parse_playlist_request_endpoint(payload: PlaylistParseRequest):
+    """
+    Parse a natural-language DJ/event playlist request into validated structured constraints
+    using the local Ollama open-weight model.
+    """
+    base_url, model = get_ollama_config()
+    try:
+        constraints = await parse_playlist_request(
+            prompt=payload.prompt,
+            base_url=base_url,
+            model=model,
+        )
+        return PlaylistParseResponse(
+            constraints=constraints,
+            model=model,
+        )
+    except OllamaConnectionError as exc:
+        logger.warning("Ollama connection error: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail=f"Local AI service unavailable: {exc}",
+        ) from exc
+    except OllamaModelNotFoundError as exc:
+        logger.warning("Ollama model not found: %s", exc)
+        raise HTTPException(
+            status_code=404,
+            detail=f"Configured model not found: {exc}",
+        ) from exc
+    except OllamaTimeoutError as exc:
+        logger.warning("Ollama request timed out: %s", exc)
+        raise HTTPException(
+            status_code=504,
+            detail=f"Local AI request timed out: {exc}",
+        ) from exc
+    except OllamaResponseValidationError as exc:
+        logger.error("Ollama response validation failed: %s", exc)
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI model returned invalid constraints: {exc}",
+        ) from exc
+    except OllamaServiceError as exc:
+        logger.exception("Ollama service error")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Local AI service error: {exc}",
+        ) from exc
+
