@@ -1,0 +1,10 @@
+seed,strategy,track_count,unique_artists,unique_genres,average_lastfm_score,average_hybrid_score,average_metadata_coverage,track_metadata_count,artist_fallback_count,lastfm_only_count,max_tracks_from_one_artist
+The Night We Met — Lord Huron,Baseline Last.fm,20,13,0,0.5402,0.5402,0.0,0,0,0,2
+The Night We Met — Lord Huron,Hybrid without diversity,20,13,16,0.534,0.5115,0.3333,16,4,0,2
+The Night We Met — Lord Huron,Hybrid with diversity,20,16,17,0.5311,0.5072,0.3333,16,4,0,2
+505 — Arctic Monkeys,Baseline Last.fm,20,14,0,0.3941,0.3941,0.0,0,0,0,2
+505 — Arctic Monkeys,Hybrid without diversity,20,15,9,0.3863,0.4761,0.35,18,2,0,2
+505 — Arctic Monkeys,Hybrid with diversity,20,16,9,0.3846,0.4748,0.35,18,2,0,2
+Sweater Weather — The Neighbourhood,Baseline Last.fm,20,16,0,0.4697,0.4697,0.0,0,0,0,2
+Sweater Weather — The Neighbourhood,Hybrid without diversity,20,17,10,0.4642,0.5083,0.5,19,1,0,2
+Sweater Weather — The Neighbourhood,Hybrid with diversity,20,17,10,0.4642,0.5083,0.5,19,1,0,2
