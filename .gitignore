@@ -1,5 +1,38 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+venv/
+.venv/
+
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+secrets/
+serviceAccountKey.json
+*service-account*.json
+*firebase-adminsdk*.json
+
+# Logs
 *.log
+
+# Databases and caches
+*.sqlite
+*.sqlite3
+*.db
+data/
+
+# Generated exports
+*.csv
+
+# Frontend dependencies and build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+.vite/
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

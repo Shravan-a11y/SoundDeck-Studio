@@ -60,6 +60,8 @@ You MUST respond ONLY with a valid JSON object matching this exact structure:
   "target_genres": ["genre1", "genre2"],
   "target_moods": ["mood1", "mood2"],
   "target_contexts": ["context1", "context2"],
+  "exclude_genres": ["genre_to_avoid"],
+  "exclude_artists": ["artist_to_avoid"],
   "limit": 20,
   "max_per_artist": 2,
   "diversity_weight": 0.2
@@ -72,7 +74,8 @@ Guidelines:
 2. If track count is mentioned, set limit between 5 and 50 (default 20).
 3. If diversity or avoiding repeat artists is requested, set max_per_artist to 1 or 2, and diversity_weight to a number between 0.0 and 1.0 (e.g. 0.8 for high diversity).
 4. Put clean descriptive strings into target_genres, target_moods, and target_contexts.
-5. Do NOT output commentary, markdown blocks, or extra text. Output raw JSON only.
+5. If the request asks to avoid, exclude, or skip certain genres (e.g. "no rap", "avoid hip hop") or artists (e.g. "exclude Drake"), put them in exclude_genres and exclude_artists.
+6. Do NOT output commentary, markdown blocks, or extra text. Output raw JSON only.
 """
 
 

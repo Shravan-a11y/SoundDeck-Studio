@@ -1,4 +1,4 @@
-﻿import os
+import os
 import re
 import json
 import time
@@ -420,10 +420,11 @@ def calculate_hybrid_score(
             if not 0.0 <= value <= 1.0:
                 raise ValueError(f"{name} must be between 0 and 1")
 
-    # Missing metadata signals fall back to Last.fm similarity.
-    # This keeps every candidate on the same fixed-weight scale.
+    # Missing metadata signals receive a conservative prior (0.5 * lastfm_score)
+    # rather than full credit, so candidates with verified matching tags
+    # correctly outrank unobserved or untagged candidates.
     effective_values = {
-        name: lastfm_score if value is None else value
+        name: (lastfm_score * 0.5) if value is None else value
         for name, value in values.items()
     }
 
